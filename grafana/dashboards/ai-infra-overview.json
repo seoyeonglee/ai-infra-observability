@@ -1,0 +1,53 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "graphTooltip": 1,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Request Rate",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "targets": [{"expr": "sum(rate(ai_service_requests_total[5m]))", "legendFormat": "req/s"}],
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 0}
+    },
+    {
+      "type": "timeseries",
+      "title": "Inference p95 Latency",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "targets": [{
+        "expr": "histogram_quantile(0.95, sum by (le) (rate(ai_service_request_duration_seconds_bucket{route=\"/api/v1/inference\"}[5m])))",
+        "legendFormat": "p95"
+      }],
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 0}
+    },
+    {
+      "type": "timeseries",
+      "title": "Inference Queue Depth",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "targets": [{"expr": "ai_inference_queue_depth", "legendFormat": "{{model}}"}],
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 0}
+    },
+    {
+      "type": "timeseries",
+      "title": "5xx Error Rate",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "targets": [{"expr": "sum(rate(ai_service_requests_total{status=~\"5..\"}[5m]))", "legendFormat": "5xx/s"}],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+    },
+    {
+      "type": "timeseries",
+      "title": "In-flight Requests",
+      "datasource": {"type": "prometheus", "uid": "victoriametrics"},
+      "targets": [{"expr": "ai_service_in_flight_requests", "legendFormat": "in-flight"}],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "tags": ["ai", "observability", "infrastructure"],
+  "templating": {"list": []},
+  "time": {"from": "now-1h", "to": "now"},
+  "title": "AI Infra Observability Overview",
+  "uid": "ai-infra-overview",
+  "version": 1
+}
