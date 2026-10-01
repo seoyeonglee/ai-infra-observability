@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-observability-api
+  namespace: ai-observability
+  labels:
+    app: ai-observability-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ai-observability-api
+  template:
+    metadata:
+      labels:
+        app: ai-observability-api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/seoyeonglee/ai-infra-observability:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-observability-api
+  namespace: ai-observability
+  labels:
+    app: ai-observability-api
+spec:
+  selector:
+    app: ai-observability-api
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
