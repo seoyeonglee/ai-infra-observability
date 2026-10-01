@@ -47,7 +47,7 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false
-            runAsNonRoot: false
+            runAsNonRoot: true\n            runAsUser: 100\n            runAsGroup: 101
 ---
 apiVersion: v1
 kind: Service
