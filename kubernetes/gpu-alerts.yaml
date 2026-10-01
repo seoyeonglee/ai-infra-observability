@@ -1,0 +1,33 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: gpu-observability-rules
+  namespace: ai-observability
+spec:
+  groups:
+    - name: gpu.rules
+      rules:
+        - alert: GPUHighUtilization
+          expr: avg by (Hostname, gpu) (DCGM_FI_DEV_GPU_UTIL) > 95
+          for: 10m
+          labels:
+            severity: warning
+            component: gpu
+          annotations:
+            summary: "Sustained GPU utilization above 95%"
+            description: "Inspect workload saturation and queue pressure before scaling."
+
+        - alert: GPUHighMemoryUtilization
+          expr: |
+            (
+              DCGM_FI_DEV_FB_USED
+              /
+              clamp_min(DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE, 1)
+            ) > 0.9
+          for: 5m
+          labels:
+            severity: warning
+            component: gpu
+          annotations:
+            summary: "GPU framebuffer memory utilization above 90%"
+            description: "Inspect model memory footprint and workload placement."
