@@ -1,0 +1,12 @@
+route:
+  receiver: ai-observability-webhook
+  group_by: ["alertname", "component"]
+  group_wait: 10s
+  group_interval: 30s
+  repeat_interval: 2h
+
+receivers:
+  - name: ai-observability-webhook
+    webhook_configs:
+      - url: http://api:8000/api/v1/alerts/prometheus
+        send_resolved: true
