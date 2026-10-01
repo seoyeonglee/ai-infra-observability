@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  python-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: pytest tests -q
+
+  compose-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose config
+
+  kubernetes-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-kubectl@v4
+      - run: |
+          kubectl create --dry-run=client -f kubernetes/namespace.yaml -o yaml >/dev/null
+          kubectl create --dry-run=client -f kubernetes/app.yaml -o yaml >/dev/null
+          kubectl create --dry-run=client -f kubernetes/dcgm-exporter.yaml -o yaml >/dev/null
