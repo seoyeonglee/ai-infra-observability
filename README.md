@@ -199,6 +199,28 @@ pip install -r app/requirements.txt
 pytest app/tests -q
 ~~~
 
+The repository's `pytest.ini` makes application imports work from either the
+repository root or `app/`, matching the CI test command. Running `pytest` from
+the repository root also selects `app/tests`; the live-service smoke test is
+run separately with `python scripts/smoke_test.py` after starting the API.
+
+Validate every Kubernetes manifest locally without a running cluster:
+
+~~~bash
+docker run --rm -v "$PWD:/work:ro" \
+  ghcr.io/yannh/kubeconform:v0.7.0 \
+  -strict -summary -kubernetes-version 1.35.0 \
+  -schema-location default \
+  -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/d373c2da9702bc9509a004db83e57263fe3bdfc1/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
+  /work/kubernetes/
+~~~
+
+CI uses these same strict schema checks, including the `PrometheusRule` in
+`gpu-alerts.yaml`. Kubernetes schemas target version 1.35.0; custom-resource
+schemas are pinned to a CRDs-catalog commit. Missing schemas fail validation.
+These checks do not replace server-side validation or runtime tests on your
+target cluster, where the Prometheus Operator CRDs must also be installed.
+
 ## Security and production considerations
 
 A real production deployment should additionally include:
