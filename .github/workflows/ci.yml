@@ -28,8 +28,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: azure/setup-kubectl@v4
-      - run: |
-          kubectl create --dry-run=client -f kubernetes/namespace.yaml -o yaml >/dev/null
-          kubectl create --dry-run=client -f kubernetes/app.yaml -o yaml >/dev/null
-          kubectl create --dry-run=client -f kubernetes/dcgm-exporter.yaml -o yaml >/dev/null
+      - name: Validate all Kubernetes manifests without a cluster
+        run: |
+          docker run --rm -v "$PWD:/work:ro" \
+            ghcr.io/yannh/kubeconform:v0.7.0 \
+            -strict -summary -kubernetes-version 1.35.0 \
+            -schema-location default \
+            -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/d373c2da9702bc9509a004db83e57263fe3bdfc1/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
+            /work/kubernetes/
